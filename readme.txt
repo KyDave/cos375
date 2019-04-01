@@ -1,4 +1,4 @@
-blah blah blah
+This is our demo repo!
 
 Additinoal comments added on local.
 
