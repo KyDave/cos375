@@ -1,0 +1,262 @@
+Starting local proxy command: plink "stu.cs.kysu.edu" -agent -nc 172.17.3.67:22
+Using username "david-crowe".
+Authenticating with public key "imported-openssh-key" from agent
+Welcome to Ubuntu 16.04.5 LTS (GNU/Linux 4.4.0-138-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+52 packages can be updated.
+38 updates are security updates.
+
+New release '18.04.1 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+Last login: Thu Dec 13 15:48:51 2018 from 172.17.2.211
+david-crowe@had00:~$ sudo -u spark PYSPARK_PYTHON=python3 pyspark
+[sudo] password for david-crowe:
+Python 3.5.2 (default, Nov 23 2017, 16:37:01)
+[GCC 5.4.0 20160609] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /__ / .__/\_,_/_/ /_/\_\   version 2.3.1.3.0.1.0-187
+      /_/
+
+Using Python version 3.5.2 (default, Nov 23 2017 16:37:01)
+SparkSession available as 'spark'.
+>>> from math import pi, sin, cos, atan2, sqrt
+>>> INPUT_FILE = 'hdfs:///user/spark/producers-h.csv'
+>>> OUTPUT_FILE = 'hdfs:///user/spark/david-crowe/nearest.csv'
+>>> HERE = (38.2006, -84.8555)
+>>> RADIUS = 30000
+>>> def hdistance (here, there):
+...     R = 6371e3 # meters
+...     phi1 = here[0]*pi/180
+...     phi2 = there[0]*pi/180
+...     deltaPhi = (there[0]-here[0])*pi/180
+...     deltaLamba= (there[1]-here[1])*pi/180
+...     a = sin(deltaPhi/2)**2 + cos(phi1)*cos(phi2)*sin(deltaLambda/2)**2
+...     c = 2*atan2(sqrt(a), sqrt(1-a))
+...     d = R*c
+...     return d
+...
+>>> df = spark.read.csv('hdfs:///user/spark/producers-h.csv', header=True)
+>>> df,take(5)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'take' is not defined
+>>> df.take(5)
+[Row(id='1', name='Mckay Smith', op_id='5520030554', address='#1 Bell Canyon Dr., Dove Canyon, California, 92679-3806', state='California', website=None, operation_start_date='04/29/2002', lat='NA', lon='NA', readdress='NA'), Row(id='3', name='Meadowview', op_id='8210005084', address='0065 S SR 5, Shipshewana, Indiana, 46565', state='IN', website=None, operation_start_date='12/09/2016', lat='41.659647', lon='-85.580283', readdress='0065 S SR 5, Shipshewana, Indiana, 46565'), Row(id='4', name='CSU - San Luis Valley Research Center', op_id='6350000495', address='0249 East Road 9 North, Center, Colorado, 81125', state='CO', website='potatoes.colostate.edu', operation_start_date='10/24/2016', lat='37.704721', lon='-106.103073', readdress='0249 East Road 9 North, Center, Colorado, 81125'), Row(id='5', name='Miller Pullets', op_id='8210004948', address='0285 S. 900 W., Shipshewana, Indiana, 46565', state='IN', website=None, operation_start_date='11/22/2016', lat='41.637079', lon='-85.599255', readdress='0285 S. 900 W., Shipshewana, Indiana, 46565'), Row(id='7', name='Oak Ridge Farms', op_id='8210004950', address='0700 S. 600 W., LaGrange, Indiana, 46761', state='IN', website=None, operation_start_date='10/25/2016', lat='41.63035', lon='-85.541015', readdress='0700 S. 600 W., LaGrange, Indiana, 46761')]
+>>> df1 = df.na.replace('NA', None, subset=('lat', 'lon'))
+>>> df1.take(3)
+[Row(id='1', name='Mckay Smith', op_id='5520030554', address='#1 Bell Canyon Dr., Dove Canyon, California, 92679-3806', state='California', website=None, operation_start_date='04/29/2002', lat=None, lon=None, readdress='NA'), Row(id='3', name='Meadowview', op_id='8210005084', address='0065 S SR 5, Shipshewana, Indiana, 46565', state='IN', website=None, operation_start_date='12/09/2016', lat='41.659647', lon='-85.580283', readdress='0065 S SR 5, Shipshewana, Indiana, 46565'), Row(id='4', name='CSU - San Luis Valley Research Center', op_id='6350000495', address='0249 East Road 9 North, Center, Colorado, 81125', state='CO', website='potatoes.colostate.edu', operation_start_date='10/24/2016', lat='37.704721', lon='-106.103073', readdress='0249 East Road 9 North, Center, Colorado, 81125')]
+>>> df2 = df1.na.drop(subset=('lat', 'lon'))
+>>> df2.take(3)
+[Row(id='3', name='Meadowview', op_id='8210005084', address='0065 S SR 5, Shipshewana, Indiana, 46565', state='IN', website=None, operation_start_date='12/09/2016', lat='41.659647', lon='-85.580283', readdress='0065 S SR 5, Shipshewana, Indiana, 46565'), Row(id='4', name='CSU - San Luis Valley Research Center', op_id='6350000495', address='0249 East Road 9 North, Center, Colorado, 81125', state='CO', website='potatoes.colostate.edu', operation_start_date='10/24/2016', lat='37.704721', lon='-106.103073', readdress='0249 East Road 9 North, Center, Colorado, 81125'), Row(id='5', name='Miller Pullets', op_id='8210004948', address='0285 S. 900 W., Shipshewana, Indiana, 46565', state='IN', website=None, operation_start_date='11/22/2016', lat='41.637079', lon='-85.599255', readdress='0285 S. 900 W., Shipshewana, Indiana, 46565')]
+>>> def distance(row):
+...     slat = row['lat']
+...     slon = row['lon']
+...     try:
+...         lat = float(slat)
+...         lon = float(slon)
+...         there = (slat, slon)
+...         there = (lat, lon)
+...         return (row, hdistance (HERE, there))
+...     except ValueError:
+...         return None
+... rdd = df2.rdd.map(distance)
+  File "<stdin>", line 12
+    rdd = df2.rdd.map(distance)
+      ^
+SyntaxError: invalid syntax
+>>> def distance(row):
+...     slat = row['lat']
+...     slon = row['lon']
+...     try:
+...         lat = float(slat)
+...         lon = float(slon)
+...         there = (lat, lon)
+...         return (row, hdistance (HERE, there))
+...     except ValueError:
+...         return None
+...
+>>> rdd = df2.rdd.map(distance)
+>>> rdd.take(3)
+[Stage 4:>                                                          (0 + 1) / 1]18/12/13 16:06:07 WARN TaskSetManager: Lost task 0.0 in stage 4.0 (TID 4, had05.hadoop.test, executor 2): org.apache.spark.api.python.PythonException: Traceback (most recent call last):
+  File "/usr/hdp/current/spark2-client/python/pyspark/worker.py", line 235, in main
+    process()
+  File "/usr/hdp/current/spark2-client/python/pyspark/worker.py", line 230, in process
+    serializer.dump_stream(func(split_index, iterator), outfile)
+  File "/usr/hdp/current/spark2-client/python/pyspark/serializers.py", line 379, in dump_stream
+    vs = list(itertools.islice(iterator, batch))
+  File "/usr/hdp/current/spark2-client/python/pyspark/rdd.py", line 1372, in takeUpToNumLeft
+    yield next(iterator)
+  File "/usr/hdp/current/spark2-client/python/pyspark/util.py", line 55, in wrapper
+    return f(*args, **kwargs)
+  File "<stdin>", line 8, in distance
+  File "<stdin>", line 7, in hdistance
+NameError: name 'deltaLambda' is not defined
+
+        at org.apache.spark.api.python.BasePythonRunner$ReaderIterator.handlePythonException(PythonRunner.scala:298)
+        at org.apache.spark.api.python.PythonRunner$$anon$1.read(PythonRunner.scala:438)
+        at org.apache.spark.api.python.PythonRunner$$anon$1.read(PythonRunner.scala:421)
+        at org.apache.spark.api.python.BasePythonRunner$ReaderIterator.hasNext(PythonRunner.scala:252)
+        at org.apache.spark.InterruptibleIterator.hasNext(InterruptibleIterator.scala:37)
+        at scala.collection.Iterator$class.foreach(Iterator.scala:893)
+        at org.apache.spark.InterruptibleIterator.foreach(InterruptibleIterator.scala:28)
+        at scala.collection.generic.Growable$class.$plus$plus$eq(Growable.scala:59)
+        at scala.collection.mutable.ArrayBuffer.$plus$plus$eq(ArrayBuffer.scala:104)
+        at scala.collection.mutable.ArrayBuffer.$plus$plus$eq(ArrayBuffer.scala:48)
+        at scala.collection.TraversableOnce$class.to(TraversableOnce.scala:310)
+        at org.apache.spark.InterruptibleIterator.to(InterruptibleIterator.scala:28)
+        at scala.collection.TraversableOnce$class.toBuffer(TraversableOnce.scala:302)
+        at org.apache.spark.InterruptibleIterator.toBuffer(InterruptibleIterator.scala:28)
+        at scala.collection.TraversableOnce$class.toArray(TraversableOnce.scala:289)
+        at org.apache.spark.InterruptibleIterator.toArray(InterruptibleIterator.scala:28)
+        at org.apache.spark.api.python.PythonRDD$$anonfun$3.apply(PythonRDD.scala:149)
+        at org.apache.spark.api.python.PythonRDD$$anonfun$3.apply(PythonRDD.scala:149)
+        at org.apache.spark.SparkContext$$anonfun$runJob$5.apply(SparkContext.scala:2074)
+        at org.apache.spark.SparkContext$$anonfun$runJob$5.apply(SparkContext.scala:2074)
+        at org.apache.spark.scheduler.ResultTask.runTask(ResultTask.scala:87)
+        at org.apache.spark.scheduler.Task.run(Task.scala:109)
+        at org.apache.spark.executor.Executor$TaskRunner.run(Executor.scala:345)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+        at java.lang.Thread.run(Thread.java:745)
+
+18/12/13 16:06:10 ERROR TaskSetManager: Task 0 in stage 4.0 failed 4 times; aborting job
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/hdp/current/spark2-client/python/pyspark/rdd.py", line 1378, in take
+    res = self.context.runJob(self, takeUpToNumLeft, p)
+  File "/usr/hdp/current/spark2-client/python/pyspark/context.py", line 1023, in runJob
+    sock_info = self._jvm.PythonRDD.runJob(self._jsc.sc(), mappedRDD._jrdd, partitions)
+  File "/usr/hdp/current/spark2-client/python/lib/py4j-0.10.7-src.zip/py4j/java_gateway.py", line 1257, in __call__
+  File "/usr/hdp/current/spark2-client/python/pyspark/sql/utils.py", line 63, in deco
+    return f(*a, **kw)
+  File "/usr/hdp/current/spark2-client/python/lib/py4j-0.10.7-src.zip/py4j/protocol.py", line 328, in get_return_value
+py4j.protocol.Py4JJavaError: An error occurred while calling z:org.apache.spark.api.python.PythonRDD.runJob.
+: org.apache.spark.SparkException: Job aborted due to stage failure: Task 0 in stage 4.0 failed 4 times, most recent failure: Lost task 0.3 in stage 4.0 (TID 7, had00.hadoop.test, executor 1): org.apache.spark.api.python.PythonException: Traceback (most recent call last):
+  File "/usr/hdp/current/spark2-client/python/pyspark/worker.py", line 235, in main
+    process()
+  File "/usr/hdp/current/spark2-client/python/pyspark/worker.py", line 230, in process
+    serializer.dump_stream(func(split_index, iterator), outfile)
+  File "/usr/hdp/current/spark2-client/python/pyspark/serializers.py", line 379, in dump_stream
+    vs = list(itertools.islice(iterator, batch))
+  File "/usr/hdp/current/spark2-client/python/pyspark/rdd.py", line 1372, in takeUpToNumLeft
+    yield next(iterator)
+  File "/usr/hdp/current/spark2-client/python/pyspark/util.py", line 55, in wrapper
+    return f(*args, **kwargs)
+  File "<stdin>", line 8, in distance
+  File "<stdin>", line 7, in hdistance
+NameError: name 'deltaLambda' is not defined
+
+        at org.apache.spark.api.python.BasePythonRunner$ReaderIterator.handlePythonException(PythonRunner.scala:298)
+        at org.apache.spark.api.python.PythonRunner$$anon$1.read(PythonRunner.scala:438)
+        at org.apache.spark.api.python.PythonRunner$$anon$1.read(PythonRunner.scala:421)
+        at org.apache.spark.api.python.BasePythonRunner$ReaderIterator.hasNext(PythonRunner.scala:252)
+        at org.apache.spark.InterruptibleIterator.hasNext(InterruptibleIterator.scala:37)
+        at scala.collection.Iterator$class.foreach(Iterator.scala:893)
+        at org.apache.spark.InterruptibleIterator.foreach(InterruptibleIterator.scala:28)
+        at scala.collection.generic.Growable$class.$plus$plus$eq(Growable.scala:59)
+        at scala.collection.mutable.ArrayBuffer.$plus$plus$eq(ArrayBuffer.scala:104)
+        at scala.collection.mutable.ArrayBuffer.$plus$plus$eq(ArrayBuffer.scala:48)
+        at scala.collection.TraversableOnce$class.to(TraversableOnce.scala:310)
+        at org.apache.spark.InterruptibleIterator.to(InterruptibleIterator.scala:28)
+        at scala.collection.TraversableOnce$class.toBuffer(TraversableOnce.scala:302)
+        at org.apache.spark.InterruptibleIterator.toBuffer(InterruptibleIterator.scala:28)
+        at scala.collection.TraversableOnce$class.toArray(TraversableOnce.scala:289)
+        at org.apache.spark.InterruptibleIterator.toArray(InterruptibleIterator.scala:28)
+        at org.apache.spark.api.python.PythonRDD$$anonfun$3.apply(PythonRDD.scala:149)
+        at org.apache.spark.api.python.PythonRDD$$anonfun$3.apply(PythonRDD.scala:149)
+        at org.apache.spark.SparkContext$$anonfun$runJob$5.apply(SparkContext.scala:2074)
+        at org.apache.spark.SparkContext$$anonfun$runJob$5.apply(SparkContext.scala:2074)
+        at org.apache.spark.scheduler.ResultTask.runTask(ResultTask.scala:87)
+        at org.apache.spark.scheduler.Task.run(Task.scala:109)
+        at org.apache.spark.executor.Executor$TaskRunner.run(Executor.scala:345)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+        at java.lang.Thread.run(Thread.java:745)
+
+Driver stacktrace:
+        at org.apache.spark.scheduler.DAGScheduler.org$apache$spark$scheduler$DAGScheduler$$failJobAndIndependentStages(DAGScheduler.scala:1609)
+        at org.apache.spark.scheduler.DAGScheduler$$anonfun$abortStage$1.apply(DAGScheduler.scala:1597)
+        at org.apache.spark.scheduler.DAGScheduler$$anonfun$abortStage$1.apply(DAGScheduler.scala:1596)
+        at scala.collection.mutable.ResizableArray$class.foreach(ResizableArray.scala:59)
+        at scala.collection.mutable.ArrayBuffer.foreach(ArrayBuffer.scala:48)
+        at org.apache.spark.scheduler.DAGScheduler.abortStage(DAGScheduler.scala:1596)
+        at org.apache.spark.scheduler.DAGScheduler$$anonfun$handleTaskSetFailed$1.apply(DAGScheduler.scala:831)
+        at org.apache.spark.scheduler.DAGScheduler$$anonfun$handleTaskSetFailed$1.apply(DAGScheduler.scala:831)
+        at scala.Option.foreach(Option.scala:257)
+        at org.apache.spark.scheduler.DAGScheduler.handleTaskSetFailed(DAGScheduler.scala:831)
+        at org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.doOnReceive(DAGScheduler.scala:1830)
+        at org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.onReceive(DAGScheduler.scala:1779)
+        at org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.onReceive(DAGScheduler.scala:1768)
+        at org.apache.spark.util.EventLoop$$anon$1.run(EventLoop.scala:48)
+        at org.apache.spark.scheduler.DAGScheduler.runJob(DAGScheduler.scala:642)
+        at org.apache.spark.SparkContext.runJob(SparkContext.scala:2034)
+        at org.apache.spark.SparkContext.runJob(SparkContext.scala:2055)
+        at org.apache.spark.SparkContext.runJob(SparkContext.scala:2074)
+        at org.apache.spark.api.python.PythonRDD$.runJob(PythonRDD.scala:149)
+        at org.apache.spark.api.python.PythonRDD.runJob(PythonRDD.scala)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        at java.lang.reflect.Method.invoke(Method.java:498)
+        at py4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)
+        at py4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)
+        at py4j.Gateway.invoke(Gateway.java:282)
+        at py4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)
+        at py4j.commands.CallCommand.execute(CallCommand.java:79)
+        at py4j.GatewayConnection.run(GatewayConnection.java:238)
+        at java.lang.Thread.run(Thread.java:745)
+Caused by: org.apache.spark.api.python.PythonException: Traceback (most recent call last):
+  File "/usr/hdp/current/spark2-client/python/pyspark/worker.py", line 235, in main
+    process()
+  File "/usr/hdp/current/spark2-client/python/pyspark/worker.py", line 230, in process
+    serializer.dump_stream(func(split_index, iterator), outfile)
+  File "/usr/hdp/current/spark2-client/python/pyspark/serializers.py", line 379, in dump_stream
+    vs = list(itertools.islice(iterator, batch))
+  File "/usr/hdp/current/spark2-client/python/pyspark/rdd.py", line 1372, in takeUpToNumLeft
+    yield next(iterator)
+  File "/usr/hdp/current/spark2-client/python/pyspark/util.py", line 55, in wrapper
+    return f(*args, **kwargs)
+  File "<stdin>", line 8, in distance
+  File "<stdin>", line 7, in hdistance
+NameError: name 'deltaLambda' is not defined
+
+        at org.apache.spark.api.python.BasePythonRunner$ReaderIterator.handlePythonException(PythonRunner.scala:298)
+        at org.apache.spark.api.python.PythonRunner$$anon$1.read(PythonRunner.scala:438)
+        at org.apache.spark.api.python.PythonRunner$$anon$1.read(PythonRunner.scala:421)
+        at org.apache.spark.api.python.BasePythonRunner$ReaderIterator.hasNext(PythonRunner.scala:252)
+        at org.apache.spark.InterruptibleIterator.hasNext(InterruptibleIterator.scala:37)
+        at scala.collection.Iterator$class.foreach(Iterator.scala:893)
+        at org.apache.spark.InterruptibleIterator.foreach(InterruptibleIterator.scala:28)
+        at scala.collection.generic.Growable$class.$plus$plus$eq(Growable.scala:59)
+        at scala.collection.mutable.ArrayBuffer.$plus$plus$eq(ArrayBuffer.scala:104)
+        at scala.collection.mutable.ArrayBuffer.$plus$plus$eq(ArrayBuffer.scala:48)
+        at scala.collection.TraversableOnce$class.to(TraversableOnce.scala:310)
+        at org.apache.spark.InterruptibleIterator.to(InterruptibleIterator.scala:28)
+        at scala.collection.TraversableOnce$class.toBuffer(TraversableOnce.scala:302)
+        at org.apache.spark.InterruptibleIterator.toBuffer(InterruptibleIterator.scala:28)
+        at scala.collection.TraversableOnce$class.toArray(TraversableOnce.scala:289)
+        at org.apache.spark.InterruptibleIterator.toArray(InterruptibleIterator.scala:28)
+        at org.apache.spark.api.python.PythonRDD$$anonfun$3.apply(PythonRDD.scala:149)
+        at org.apache.spark.api.python.PythonRDD$$anonfun$3.apply(PythonRDD.scala:149)
+        at org.apache.spark.SparkContext$$anonfun$runJob$5.apply(SparkContext.scala:2074)
+        at org.apache.spark.SparkContext$$anonfun$runJob$5.apply(SparkContext.scala:2074)
+        at org.apache.spark.scheduler.ResultTask.runTask(ResultTask.scala:87)
+        at org.apache.spark.scheduler.Task.run(Task.scala:109)
+        at org.apache.spark.executor.Executor$TaskRunner.run(Executor.scala:345)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+        ... 1 more
+
+>>>
